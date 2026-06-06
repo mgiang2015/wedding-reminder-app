@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Le & Zel 💍</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:   #faf7f2;
+      --warm:    #f0e8db;
+      --gold:    #b8976a;
+      --gold-lt: #d4b896;
+      --ink:     #2c2418;
+      --muted:   #8a7a68;
+      --success: #4a7c59;
+      --error:   #8b3a3a;
+      --radius:  2px;
+    }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1.25rem 4rem;
+    }
+
+    /* ── decorative top border ── */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      padding-top: 1rem;
+    }
+
+    .monogram {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 3rem;
+      color: var(--gold);
+      line-height: 1;
+      letter-spacing: 0.05em;
+    }
+
+    .subtitle {
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 0.4rem;
+    }
+
+    .divider {
+      width: 60px;
+      height: 1px;
+      background: var(--gold-lt);
+      margin: 1rem auto 0;
+    }
+
+    /* ── guest count badge ── */
+    #guest-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--warm);
+      border: 1px solid var(--gold-lt);
+      border-radius: 20px;
+      padding: 0.3rem 0.9rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 2rem;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    #guest-badge:hover { border-color: var(--gold); }
+    #guest-badge .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+    }
+
+    /* ── sections ── */
+    .section-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: white;
+      border: 1px solid var(--warm);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 3px rgba(44,36,24,0.04);
+    }
+
+    .card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      color: var(--ink);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+    }
+    .btn-grid.single { grid-template-columns: 1fr; }
+
+    button {
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.75rem 0.5rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--gold-lt);
+      background: white;
+      color: var(--ink);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      line-height: 1.3;
+    }
+    button:hover  { background: var(--warm); border-color: var(--gold); }
+    button:active { transform: scale(0.97); }
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ── log panel ── */
+    #log-wrap {
+      width: 100%;
+      max-width: 420px;
+      display: none;
+    }
+    #log-wrap.visible { display: block; }
+
+    #log {
+      background: var(--ink);
+      color: #e8dfc8;
+      font-size: 0.72rem;
+      font-family: 'Courier New', monospace;
+      line-height: 1.6;
+      padding: 1.25rem;
+      border-radius: var(--radius);
+      max-height: 340px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .log-success { color: #7ec99a; }
+    .log-error   { color: #e08080; }
+    .log-muted   { color: #7a6e5e; }
+    .log-gold    { color: #d4b896; }
+
+    /* ── spinner ── */
+    .spinner {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border: 2px solid var(--gold-lt);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── summary pill ── */
+    .summary {
+      margin-top: 0.75rem;
+      padding: 0.6rem 1rem;
+      border-radius: var(--radius);
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      text-align: center;
+    }
+    .summary.ok  { background: #eaf3ec; color: var(--success); border: 1px solid #c3ddc9; }
+    .summary.err { background: #f3eaea; color: var(--error);   border: 1px solid #ddc3c3; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="monogram">L &amp; Z</div>
+    <div class="subtitle">Wedding WhatsApp Sender</div>
+    <div class="divider"></div>
+  </header>
+
+  <div id="guest-badge" onclick="previewGuests()">
+    <span class="dot"></span>
+    <span id="guest-count">Loading guest list…</span>
+  </div>
+
+  <!-- Reminders -->
+  <div class="card" style="max-width:420px;width:100%">
+    <div class="card-title">🕊 Reminders</div>
+    <div class="btn-grid">
+      <button onclick="send('reminder_2_week')">2 Weeks Before</button>
+      <button onclick="send('reminder_1_week')">1 Week Before</button>
+      <button onclick="send('reminder_1_day')">1 Day Before</button>
+      <button onclick="send('reminder_0_day')">Day Of</button>
+    </div>
+  </div>
+
+  <!-- QR / After -->
+  <div class="card" style="max-width:420px;width:100%">
+    <div class="card-title">📲 Check-in & Follow-up</div>
+    <div class="btn-grid">
+      <button onclick="send('qr_media')">Send QR Code</button>
+      <button onclick="send('after')">After Wedding</button>
+    </div>
+  </div>
+
+  <!-- Log -->
+  <div id="log-wrap">
+    <p class="section-label" style="max-width:420px;width:100%;margin-bottom:.5rem">Execution log</p>
+    <div id="log"></div>
+    <div id="summary"></div>
+  </div>
+
+  <script>
+    const LABELS = {
+      reminder_2_week : "2-Week Reminder",
+      reminder_1_week : "1-Week Reminder",
+      reminder_1_day  : "1-Day Reminder",
+      reminder_0_day  : "Day-Of Reminder",
+      qr_media        : "Check-in QR Code",
+      after           : "After-Wedding Message",
+    };
+
+    // ── load guest count on page load ─────────────────────────────────────────
+    async function loadGuestCount() {
+      try {
+        const res  = await fetch("/guests");
+        const data = await res.json();
+        document.getElementById("guest-count").textContent =
+          `${data.with_phone} guests loaded — tap to preview`;
+      } catch {
+        document.getElementById("guest-count").textContent = "Could not load guest list";
+      }
+    }
+
+    async function previewGuests() {
+      const wrap = document.getElementById("log-wrap");
+      const log  = document.getElementById("log");
+      wrap.classList.add("visible");
+      log.innerHTML = `<span class="log-muted">Loading guest list…</span>`;
+      document.getElementById("summary").innerHTML = "";
+
+      try {
+        const res  = await fetch("/guests");
+        const data = await res.json();
+        let out = `<span class="log-gold">Guest list — ${data.with_phone} of ${data.total} have a phone number\n\n</span>`;
+        data.guests.forEach((g, i) => {
+          out += `<span class="log-muted">${String(i+1).padStart(3,'0')}</span>  ${g.full_name.padEnd(28)} ${g.phone_number}\n`;
+        });
+        log.innerHTML = out;
+      } catch (e) {
+        log.innerHTML = `<span class="log-error">Error: ${e.message}</span>`;
+      }
+    }
+
+    // ── send ──────────────────────────────────────────────────────────────────
+    async function send(action) {
+      const label = LABELS[action];
+
+      if (!confirm(`Send "${label}" to all guests?`)) return;
+
+      const wrap    = document.getElementById("log-wrap");
+      const log     = document.getElementById("log");
+      const summary = document.getElementById("summary");
+      const buttons = document.querySelectorAll("button");
+
+      wrap.classList.add("visible");
+      log.innerHTML    = `<span class="spinner"></span><span class="log-gold">Sending ${label}…</span>\n`;
+      summary.innerHTML = "";
+      buttons.forEach(b => b.disabled = true);
+
+      // Scroll log into view on mobile
+      wrap.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      try {
+        const res  = await fetch(`/send/${action}`, { method: "POST" });
+        const data = await res.json();
+
+        if (data.error) {
+          log.innerHTML += `\n<span class="log-error">Error: ${data.error}</span>`;
+          summary.innerHTML = `<div class="summary err">❌ Failed — ${data.error}</div>`;
+          return;
+        }
+
+        let out = `<span class="log-gold">Action  : ${label}\nTotal   : ${data.total}\nSent    : ${data.successful.length}\nFailed  : ${data.failed.length}\n</span>\n`;
+
+        if (data.successful.length) {
+          out += `<span class="log-success">── Successful ──────────────────\n</span>`;
+          data.successful.forEach(s => {
+            out += `<span class="log-success">✓</span> ${s.name.padEnd(28)} ${s.phone}\n  <span class="log-muted">SID: ${s.sid}  [${s.status}]</span>\n`;
+          });
+        }
+
+        if (data.failed.length) {
+          out += `\n<span class="log-error">── Failed ──────────────────────\n</span>`;
+          data.failed.forEach(f => {
+            out += `<span class="log-error">✗</span> ${f.name.padEnd(28)} ${f.phone}\n  <span class="log-muted">${f.error}</span>\n`;
+          });
+        }
+
+        log.innerHTML = out;
+
+        const allOk = data.failed.length === 0;
+        summary.innerHTML = allOk
+          ? `<div class="summary ok">✅ All ${data.successful.length} messages sent successfully</div>`
+          : `<div class="summary err">⚠️ ${data.successful.length} sent, ${data.failed.length} failed</div>`;
+
+      } catch (e) {
+        log.innerHTML += `\n<span class="log-error">Network error: ${e.message}</span>`;
+        summary.innerHTML = `<div class="summary err">❌ Network error</div>`;
+      } finally {
+        buttons.forEach(b => b.disabled = false);
+      }
+    }
+
+    loadGuestCount();
+  </script>
+</body>
+</html>
