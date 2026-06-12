@@ -140,6 +140,18 @@ def upload():
     })
 
 
+
+@app.route("/guests", methods=["GET"])
+def guests():
+    """Return the currently loaded guest list."""
+    with_phone = [g for g in _guests if str(g.get("phone_number", "")).strip()]
+    return jsonify({
+        "total"     : len(_guests),
+        "with_phone": len(with_phone),
+        "guests"    : with_phone,
+    })
+
+
 @app.route("/send/<action>", methods=["POST"])
 def send(action: str):
     if action not in TEMPLATE_SIDS:

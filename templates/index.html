@@ -341,15 +341,28 @@
       wrap.classList.add("visible");
       document.getElementById("summary").innerHTML = "";
       log.innerHTML = `<span class="log-muted">Loading preview…</span>`;
+      wrap.scrollIntoView({ behavior: "smooth", block: "start" });
 
       try {
-        const res  = await fetch("/upload", { method: "GET" });
-        // We'll just re-use the in-memory state via a dedicated endpoint
-      } catch {}
+        const res  = await fetch("/guests");
+        const data = await res.json();
 
-      // Re-read from the last upload response stored in memory
-      log.innerHTML = `<span class="log-muted">Preview not available — re-upload CSV to refresh.</span>`;
-      wrap.scrollIntoView({ behavior: "smooth", block: "start" });
+        let out = `<span class="log-gold">Guest list — ${data.with_phone} of ${data.total} have a phone number
+
+</span>`;
+        out += `<span class="log-muted">${"ID".padEnd(8)}${"Name".padEnd(28)}Phone
+</span>`;
+        data.guests.forEach((g, i) => {
+          const gid   = String(g.guest_id  || "—").padEnd(8);
+          const name  = String(g.full_name || "—").padEnd(28);
+          const phone = String(g.phone_number || "—");
+          out += `${gid}${name}${phone}
+`;
+        });
+        log.innerHTML = out;
+      } catch (e) {
+        log.innerHTML = `<span class="log-error">Error: ${e.message}</span>`;
+      }
     }
 
     // ── send ──────────────────────────────────────────────────────────────────
