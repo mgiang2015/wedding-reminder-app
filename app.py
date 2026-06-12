@@ -4,11 +4,12 @@ Simple Flask web app to trigger bulk WhatsApp sends from your phone.
 """
 
 import csv
+import io
 import json
 import os
 import time
 
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 from twilio.rest import Client
 
 app = Flask(__name__)
@@ -18,8 +19,8 @@ ACCOUNT_SID  = os.environ["TWILIO_ACCOUNT_SID"]
 AUTH_TOKEN   = os.environ["TWILIO_AUTH_TOKEN"]
 FROM_NUMBER  = os.environ.get("TWILIO_FROM_NUMBER", "+6589919363")
 
-# ── CSV config ────────────────────────────────────────────────────────────────
-CSV_FILE = os.environ.get("GUESTS_CSV_PATH", "/etc/secrets/guests.csv")
+# ── In-memory guest list (populated via CSV upload) ───────────────────────────
+_guests = []
 
 # ── Rate limiting ─────────────────────────────────────────────────────────────
 DELAY_BETWEEN_SENDS = 0.2
@@ -37,9 +38,9 @@ TEMPLATE_SIDS = {
 
 # ── Guest list ────────────────────────────────────────────────────────────────
 
-def get_guests():
-    with open(CSV_FILE, newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
+def parse_csv(content: str) -> list:
+    reader = csv.DictReader(io.StringIO(content))
+    return list(reader)
 
 
 def normalise_phone(phone: str) -> str:
@@ -76,21 +77,19 @@ def send_qr_media(client, guest):
 # ── Core bulk-send logic ──────────────────────────────────────────────────────
 
 def bulk_send(action: str):
-    """
-    Run a bulk send for the given action key.
-    Returns a result dict with successes and failures.
-    """
-    guests  = get_guests()
-    to_send = [g for g in guests if str(g.get("phone_number", "")).strip()]
+    if not _guests:
+        raise ValueError("No guest list loaded. Please upload a CSV first.")
+
+    to_send = [g for g in _guests if str(g.get("phone_number", "")).strip()]
 
     client     = Client(ACCOUNT_SID, AUTH_TOKEN)
     successful = []
     failed     = []
 
     for guest in to_send:
-        name  = guest["full_name"].strip()
-        phone = normalise_phone(guest["phone_number"])
-        gid   = str(guest["guest_id"]).strip()
+        name     = guest["full_name"].strip()
+        phone    = normalise_phone(guest["phone_number"])
+        guest_id = str(guest.get("guest_id", "—")).strip()
 
         try:
             if action == "qr_media":
@@ -98,9 +97,9 @@ def bulk_send(action: str):
             else:
                 sid, status = send_reminder(client, guest, TEMPLATE_SIDS[action])
 
-            successful.append({"name": name, "phone": phone, "sid": sid, "status": status})
+            successful.append({"guest_id": guest_id, "name": name, "phone": phone, "sid": sid, "status": status})
         except Exception as e:
-            failed.append({"name": name, "phone": phone, "error": str(e)})
+            failed.append({"guest_id": guest_id, "name": name, "phone": phone, "error": str(e)})
 
         time.sleep(DELAY_BETWEEN_SENDS)
 
@@ -119,6 +118,28 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/upload", methods=["POST"])
+def upload():
+    """Accept a CSV file upload and store guests in memory."""
+    global _guests
+    if "file" not in request.files:
+        return jsonify({"error": "No file provided"}), 400
+
+    f = request.files["file"]
+    if not f.filename.endswith(".csv"):
+        return jsonify({"error": "Please upload a .csv file"}), 400
+
+    content = f.read().decode("utf-8")
+    _guests = parse_csv(content)
+    with_phone = [g for g in _guests if str(g.get("phone_number", "")).strip()]
+
+    return jsonify({
+        "total"     : len(_guests),
+        "with_phone": len(with_phone),
+        "guests"    : with_phone,
+    })
+
+
 @app.route("/send/<action>", methods=["POST"])
 def send(action: str):
     if action not in TEMPLATE_SIDS:
@@ -126,17 +147,6 @@ def send(action: str):
     try:
         result = bulk_send(action)
         return jsonify(result)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route("/guests")
-def guests():
-    """Preview the loaded guest list."""
-    try:
-        all_guests = get_guests()
-        with_phone = [g for g in all_guests if str(g.get("phone_number", "")).strip()]
-        return jsonify({"total": len(all_guests), "with_phone": len(with_phone), "guests": with_phone})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

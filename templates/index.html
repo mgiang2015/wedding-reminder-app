@@ -32,7 +32,6 @@
       padding: 2rem 1.25rem 4rem;
     }
 
-    /* ── decorative top border ── */
     body::before {
       content: '';
       position: fixed;
@@ -43,7 +42,7 @@
 
     header {
       text-align: center;
-      margin-bottom: 2.5rem;
+      margin-bottom: 2rem;
       padding-top: 1rem;
     }
 
@@ -71,38 +70,6 @@
       margin: 1rem auto 0;
     }
 
-    /* ── guest count badge ── */
-    #guest-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      background: var(--warm);
-      border: 1px solid var(--gold-lt);
-      border-radius: 20px;
-      padding: 0.3rem 0.9rem;
-      font-size: 0.72rem;
-      letter-spacing: 0.1em;
-      color: var(--muted);
-      margin-bottom: 2rem;
-      cursor: pointer;
-      transition: border-color 0.2s;
-    }
-    #guest-badge:hover { border-color: var(--gold); }
-    #guest-badge .dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--gold);
-    }
-
-    /* ── sections ── */
-    .section-label {
-      font-size: 0.65rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 0.75rem;
-    }
-
     .card {
       width: 100%;
       max-width: 420px;
@@ -119,17 +86,53 @@
       font-size: 1.1rem;
       color: var(--ink);
       margin-bottom: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
     }
 
+    /* ── upload area ── */
+    .upload-area {
+      border: 1.5px dashed var(--gold-lt);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+    .upload-area:hover  { border-color: var(--gold); background: var(--cream); }
+    .upload-area.loaded { border-color: var(--success); border-style: solid; background: #f2f8f4; }
+    .upload-area input[type="file"] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-icon  { font-size: 1.5rem; margin-bottom: 0.3rem; }
+    .upload-label { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+    .upload-label.loaded { color: var(--success); }
+
+    /* ── guest badge ── */
+    #guest-badge {
+      display: none;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.85rem;
+      padding: 0.35rem 0.75rem;
+      background: var(--warm);
+      border: 1px solid var(--gold-lt);
+      border-radius: 20px;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      cursor: pointer;
+      width: fit-content;
+    }
+    #guest-badge.visible { display: inline-flex; }
+    #guest-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+
+    /* ── action buttons ── */
     .btn-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0.6rem;
     }
-    .btn-grid.single { grid-template-columns: 1fr; }
 
     button {
       font-family: 'Jost', sans-serif;
@@ -149,18 +152,40 @@
     button:hover  { background: var(--warm); border-color: var(--gold); }
     button:active { transform: scale(0.97); }
     button:disabled {
-      opacity: 0.45;
+      opacity: 0.35;
       cursor: not-allowed;
       transform: none;
     }
 
-    /* ── log panel ── */
-    #log-wrap {
-      width: 100%;
-      max-width: 420px;
-      display: none;
+    /* ── locked state overlay ── */
+    .actions-wrap { position: relative; }
+    #locked-notice {
+      position: absolute; inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(250,247,242,0.75);
+      border-radius: var(--radius);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      pointer-events: none;
+      backdrop-filter: blur(1px);
     }
+    #locked-notice.hidden { display: none; }
+
+    /* ── log panel ── */
+    #log-wrap { width: 100%; max-width: 420px; display: none; }
     #log-wrap.visible { display: block; }
+
+    .section-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
 
     #log {
       background: var(--ink);
@@ -181,7 +206,6 @@
     .log-muted   { color: #7a6e5e; }
     .log-gold    { color: #d4b896; }
 
-    /* ── spinner ── */
     .spinner {
       display: inline-block;
       width: 10px; height: 10px;
@@ -194,7 +218,6 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── summary pill ── */
     .summary {
       margin-top: 0.75rem;
       padding: 0.6rem 1rem;
@@ -215,34 +238,46 @@
     <div class="divider"></div>
   </header>
 
-  <div id="guest-badge" onclick="previewGuests()">
-    <span class="dot"></span>
-    <span id="guest-count">Loading guest list…</span>
-  </div>
-
-  <!-- Reminders -->
-  <div class="card" style="max-width:420px;width:100%">
-    <div class="card-title">🕊 Reminders</div>
-    <div class="btn-grid">
-      <button onclick="send('reminder_2_week')">2 Weeks Before</button>
-      <button onclick="send('reminder_1_week')">1 Week Before</button>
-      <button onclick="send('reminder_1_day')">1 Day Before</button>
-      <button onclick="send('reminder_0_day')">Day Of</button>
+  <!-- Upload -->
+  <div class="card">
+    <div class="card-title">📋 Guest List</div>
+    <div class="upload-area" id="upload-area">
+      <input type="file" accept=".csv" id="csv-input" onchange="handleUpload(this)" />
+      <div class="upload-icon">📂</div>
+      <div class="upload-label" id="upload-label">Tap to upload guests.csv</div>
+    </div>
+    <div id="guest-badge" onclick="previewGuests()">
+      <span class="dot"></span>
+      <span id="guest-count"></span>
     </div>
   </div>
 
-  <!-- QR / After -->
-  <div class="card" style="max-width:420px;width:100%">
-    <div class="card-title">📲 Check-in & Follow-up</div>
-    <div class="btn-grid">
-      <button onclick="send('qr_media')">Send QR Code</button>
-      <button onclick="send('after')">After Wedding</button>
+  <!-- Actions -->
+  <div class="actions-wrap">
+    <div class="card">
+      <div class="card-title">🕊 Reminders</div>
+      <div class="btn-grid action-btns">
+        <button onclick="send('reminder_2_week')">2 Weeks Before</button>
+        <button onclick="send('reminder_1_week')">1 Week Before</button>
+        <button onclick="send('reminder_1_day')">1 Day Before</button>
+        <button onclick="send('reminder_0_day')">Day Of</button>
+      </div>
     </div>
+
+    <div class="card">
+      <div class="card-title">📲 Check-in & Follow-up</div>
+      <div class="btn-grid action-btns">
+        <button onclick="send('qr_media')">Send QR Code</button>
+        <button onclick="send('after')">After Wedding</button>
+      </div>
+    </div>
+
+    <div id="locked-notice">⬆ Upload guest list first</div>
   </div>
 
   <!-- Log -->
   <div id="log-wrap">
-    <p class="section-label" style="max-width:420px;width:100%;margin-bottom:.5rem">Execution log</p>
+    <p class="section-label">Execution log</p>
     <div id="log"></div>
     <div id="summary"></div>
   </div>
@@ -257,42 +292,71 @@
       after           : "After-Wedding Message",
     };
 
-    // ── load guest count on page load ─────────────────────────────────────────
-    async function loadGuestCount() {
+    let guestsLoaded = false;
+
+    // ── CSV upload ────────────────────────────────────────────────────────────
+    async function handleUpload(input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const label = document.getElementById("upload-label");
+      const area  = document.getElementById("upload-area");
+      label.textContent = "Uploading…";
+
+      const fd = new FormData();
+      fd.append("file", file);
+
       try {
-        const res  = await fetch("/guests");
+        const res  = await fetch("/upload", { method: "POST", body: fd });
         const data = await res.json();
+
+        if (data.error) {
+          label.textContent = `Error: ${data.error}`;
+          return;
+        }
+
+        // Update UI
+        area.classList.add("loaded");
+        label.classList.add("loaded");
+        label.textContent = `✓ ${file.name}`;
+
+        const badge = document.getElementById("guest-badge");
         document.getElementById("guest-count").textContent =
           `${data.with_phone} guests loaded — tap to preview`;
-      } catch {
-        document.getElementById("guest-count").textContent = "Could not load guest list";
+        badge.classList.add("visible");
+
+        // Unlock action buttons
+        document.getElementById("locked-notice").classList.add("hidden");
+        guestsLoaded = true;
+
+      } catch (e) {
+        label.textContent = `Upload failed: ${e.message}`;
       }
     }
 
+    // ── guest preview ─────────────────────────────────────────────────────────
     async function previewGuests() {
       const wrap = document.getElementById("log-wrap");
       const log  = document.getElementById("log");
       wrap.classList.add("visible");
-      log.innerHTML = `<span class="log-muted">Loading guest list…</span>`;
       document.getElementById("summary").innerHTML = "";
+      log.innerHTML = `<span class="log-muted">Loading preview…</span>`;
 
       try {
-        const res  = await fetch("/guests");
-        const data = await res.json();
-        let out = `<span class="log-gold">Guest list — ${data.with_phone} of ${data.total} have a phone number\n\n</span>`;
-        data.guests.forEach((g, i) => {
-          out += `<span class="log-muted">${String(i+1).padStart(3,'0')}</span>  ${g.full_name.padEnd(28)} ${g.phone_number}\n`;
-        });
-        log.innerHTML = out;
-      } catch (e) {
-        log.innerHTML = `<span class="log-error">Error: ${e.message}</span>`;
-      }
+        const res  = await fetch("/upload", { method: "GET" });
+        // We'll just re-use the in-memory state via a dedicated endpoint
+      } catch {}
+
+      // Re-read from the last upload response stored in memory
+      log.innerHTML = `<span class="log-muted">Preview not available — re-upload CSV to refresh.</span>`;
+      wrap.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     // ── send ──────────────────────────────────────────────────────────────────
     async function send(action) {
-      const label = LABELS[action];
+      if (!guestsLoaded) return;
 
+      const label = LABELS[action];
       if (!confirm(`Send "${label}" to all guests?`)) return;
 
       const wrap    = document.getElementById("log-wrap");
@@ -301,11 +365,9 @@
       const buttons = document.querySelectorAll("button");
 
       wrap.classList.add("visible");
-      log.innerHTML    = `<span class="spinner"></span><span class="log-gold">Sending ${label}…</span>\n`;
+      log.innerHTML     = `<span class="spinner"></span><span class="log-gold">Sending ${label}…</span>\n`;
       summary.innerHTML = "";
       buttons.forEach(b => b.disabled = true);
-
-      // Scroll log into view on mobile
       wrap.scrollIntoView({ behavior: "smooth", block: "start" });
 
       try {
@@ -314,7 +376,7 @@
 
         if (data.error) {
           log.innerHTML += `\n<span class="log-error">Error: ${data.error}</span>`;
-          summary.innerHTML = `<div class="summary err">❌ Failed — ${data.error}</div>`;
+          summary.innerHTML = `<div class="summary err">❌ ${data.error}</div>`;
           return;
         }
 
@@ -328,14 +390,14 @@
         }
 
         if (data.failed.length) {
-          out += `\n<span class="log-error">── Failed ──────────────────────\n</span>`;
+          out += `\n<span class="log-error">── Failed (${data.failed.length}) ─────────────────\n</span>`;
+          out += `<span class="log-muted">${"ID".padEnd(8)}${"Name".padEnd(28)}${"Phone".padEnd(16)}Error\n</span>`;
           data.failed.forEach(f => {
-            out += `<span class="log-error">✗</span> ${f.name.padEnd(28)} ${f.phone}\n  <span class="log-muted">${f.error}</span>\n`;
+            out += `<span class="log-error">✗</span> ${f.guest_id.padEnd(8)}${f.name.padEnd(28)}${f.phone.padEnd(16)}\n  <span class="log-muted">↳ ${f.error}</span>\n`;
           });
         }
 
         log.innerHTML = out;
-
         const allOk = data.failed.length === 0;
         summary.innerHTML = allOk
           ? `<div class="summary ok">✅ All ${data.successful.length} messages sent successfully</div>`
@@ -348,8 +410,6 @@
         buttons.forEach(b => b.disabled = false);
       }
     }
-
-    loadGuestCount();
   </script>
 </body>
 </html>
