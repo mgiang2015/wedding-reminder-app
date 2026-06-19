@@ -63,14 +63,14 @@ def send_reminder(client, guest, template_sid):
 
 
 def send_qr_media(client, guest):
-    phone    = normalise_phone(guest["phone_number"])
-    guest_id = str(guest["guest_id"]).strip()
+    phone     = normalise_phone(guest["phone_number"])
+    guest_id  = str(guest["guest_id"]).strip()
     full_name = str(guest["full_name"]).strip()
     msg = client.messages.create(
         from_=f"whatsapp:{FROM_NUMBER}",
         to=f"whatsapp:{phone}",
         content_sid=TEMPLATE_SIDS["qr_media"],
-        content_variables=json.dumps([{"1": guest_id},{"2": full_name}]),
+        content_variables=json.dumps({"1": full_name, "2": guest_id}),
     )
     return msg.sid, msg.status
 
