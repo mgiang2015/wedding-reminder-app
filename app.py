@@ -32,7 +32,7 @@ TEMPLATE_SIDS = {
     "reminder_1_day"  : "HXb79fb543dd50a24d6522a201bcbab763",
     "reminder_0_day"  : "HX3673955f7285c6cbf40999997b363fbf",
     "after"           : "HX7e1aaf2f76ac0bedb45fc757b9ddb7c4",
-    "qr_media"        : "HX359f05d687494d2353a2bce6de42b232",
+    "qr_media"        : "HXa84ac7bb14e3aaa7a0dc41f902b042ee",
 }
 
 
@@ -65,11 +65,12 @@ def send_reminder(client, guest, template_sid):
 def send_qr_media(client, guest):
     phone    = normalise_phone(guest["phone_number"])
     guest_id = str(guest["guest_id"]).strip()
+    full_name = str(guest["full_name"]).strip()
     msg = client.messages.create(
         from_=f"whatsapp:{FROM_NUMBER}",
         to=f"whatsapp:{phone}",
         content_sid=TEMPLATE_SIDS["qr_media"],
-        content_variables=json.dumps({"1": guest_id}),
+        content_variables=json.dumps([{"1": guest_id},{"2": full_name}]),
     )
     return msg.sid, msg.status
 
